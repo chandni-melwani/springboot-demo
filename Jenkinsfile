@@ -10,7 +10,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/chandni-melwani/demo-app.git'
+                git 'https://github.com/chandni-melwani/springboot-demo.git'
             }
         }
 
@@ -54,10 +54,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Docker image pushed and deployed to Kubernetes successfully!'
+            echo '✅ Application successfully built, pushed, and deployed!'
         }
         failure {
-            echo '❌ Pipeline failed. Check the console output for details.'
+            echo '❌ Pipeline failed. Check Jenkins console output.'
         }
     }
 }
