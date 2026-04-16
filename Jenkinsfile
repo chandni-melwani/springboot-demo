@@ -3,14 +3,16 @@ pipeline {
 
     environment {
         IMAGE_NAME = "chandni2308/demo-app:1.0"
-        DOCKERHUB_CREDENTIALS = "dockerhub-creds"
+        DOCKER_IMAGE = "chandni2308/demo-app"
+        DOCKER_CREDENTIALS_ID = "dockerhub-creds"
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/chandni-melwani/springboot-demo.git'
+                git branch: 'main',
+                    url: 'https://github.com/chandni-melwani/springboot-demo.git'
             }
         }
 
@@ -32,16 +34,21 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: DOCKERHUB_CREDENTIALS,
+                    credentialsId: DOCKER_CREDENTIALS_ID,
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                    bat 'docker push %IMAGE_NAME%'
                 }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                bat 'docker push %IMAGE_NAME%'
             }
         }
 
@@ -50,14 +57,25 @@ pipeline {
                 bat 'kubectl apply -f deployment.yaml'
             }
         }
+
+        stage('Verify Deployment') {
+            steps {
+                bat 'kubectl get pods'
+                bat 'kubectl get services'
+            }
+        }
     }
 
     post {
         success {
-            echo '✅ Application successfully built, pushed, and deployed!'
+            echo '✅ CI/CD Pipeline executed successfully!'
+            echo '🚀 Application deployed to Kubernetes.'
         }
         failure {
-            echo '❌ Pipeline failed. Check Jenkins console output.'
+            echo '❌ Pipeline failed. Check the console output for details.'
+        }
+        always {
+            bat 'docker logout'
         }
     }
 }
